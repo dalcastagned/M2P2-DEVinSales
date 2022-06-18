@@ -4,9 +4,9 @@ using DevInSales.Core.Entities;
 
 namespace DevInSales.Core.Data.Mappings
 {
-    public class UserMap : IEntityTypeConfiguration<User>
+    public class UserMap : IEntityTypeConfiguration<User2>
     {
-        public void Configure(EntityTypeBuilder<User> builder)
+        public void Configure(EntityTypeBuilder<User2> builder)
         {
             builder.ToTable("Users");
 
@@ -30,10 +30,10 @@ namespace DevInSales.Core.Data.Mappings
                 .IsRequired();
 
             builder.HasData(
-                new User(1, "Allie.Spencer@manuel.us", "661845", "Allie Spencer", new DateTime(1980, 10, 11)),
-                new User(2, "Earnest@kari.biz", "800631", "Lemuel Witting", new DateTime(1980, 10, 11)),
-                new User(3, "Adella_Shanahan@kenneth.biz", "661342", "Kari Olson I", new DateTime(1980, 10, 11)),
-                new User(4, "Americo.Strosin@kale.tv", "661964", "Marion Nolan DDS", new DateTime(1980, 10, 11))
+                new User2(1, "Allie.Spencer@manuel.us", "661845", "Allie Spencer", new DateTime(1980, 10, 11)),
+                new User2(2, "Earnest@kari.biz", "800631", "Lemuel Witting", new DateTime(1980, 10, 11)),
+                new User2(3, "Adella_Shanahan@kenneth.biz", "661342", "Kari Olson I", new DateTime(1980, 10, 11)),
+                new User2(4, "Americo.Strosin@kale.tv", "661964", "Marion Nolan DDS", new DateTime(1980, 10, 11))
             );
         }
     }
