@@ -4,20 +4,15 @@ namespace DevInSales.Core.Data.Dtos
 {
     public class ReadState
     {
+        public ReadState(State state)
+        {
+            Id = state.Id;
+            Name = state.Name;
+            Initials = state.Initials;
+        }
+
         public int Id { get; set; }
         public string Name { get; set; }
         public string Initials { get; set; }
-
-        public static ReadState? StateToReadState(State? state)
-        {
-            if (state == null)
-                return null;
-            return new ReadState
-            {
-                Id = state.Id,
-                Name = state.Name,
-                Initials = state.Initials
-            };
-        }
     }
 }

@@ -1,10 +1,10 @@
-using DevInSales.Core.Data.Dtos;
+using DevInSales.Core.Entities;
 
 namespace DevInSales.Core.Interfaces
 {
     public interface IStateService
     {
-        List<ReadState> GetAll(string? name);
-        ReadState GetById(int stateId);
+        Task<IEnumerable<State>> GetAll(string? name);
+        Task<State?> GetById(int stateId);
     }
 }

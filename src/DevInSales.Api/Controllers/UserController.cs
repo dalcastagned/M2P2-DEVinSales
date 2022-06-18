@@ -45,7 +45,7 @@ namespace DevInSales.Api.Controllers
             statusCode: StatusCodes.Status500InternalServerError,
             description: "Server Error"
         )]
-        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
         [SwaggerOperation(Summary = "Get users list")]
         public async Task<IActionResult> GetUsers(string? nome, string? DataMin, string? DataMax)
         {
@@ -71,7 +71,7 @@ namespace DevInSales.Api.Controllers
             statusCode: StatusCodes.Status500InternalServerError,
             description: "Server Error"
         )]
-        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
         [SwaggerOperation(Summary = "Get user by id")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -184,7 +184,7 @@ namespace DevInSales.Api.Controllers
             statusCode: StatusCodes.Status500InternalServerError,
             description: "Server Error"
         )]
-        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Delete))]
         [SwaggerOperation(Summary = "Remove User")]
         public async Task<IActionResult> RemoveUser(int id)
         {

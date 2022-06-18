@@ -1,5 +1,5 @@
 using DevInSales.Core.Data.Context;
-using DevInSales.Core.Data.Dtos;
+using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,9 +14,8 @@ namespace DevInSales.Core.Services
             _context = context;
         }
 
-        public List<ReadState> GetAll(string? name)
-        {
-            return _context.States
+        public async Task<IEnumerable<State>> GetAll(string? name) =>
+            await _context.States
                 .Include(p => p.Cities)
                 .Where(
                     p =>
@@ -24,14 +23,9 @@ namespace DevInSales.Core.Services
                             ? p.Name.ToUpper().Contains(name.ToUpper())
                             : true
                 )
-                .Select(s => ReadState.StateToReadState(s))
-                .ToList();
-        }
+                .ToListAsync();
 
-        public ReadState GetById(int stateId)
-        {
-            var state = _context.States.Include(p => p.Cities).FirstOrDefault(p => p.Id == stateId);
-            return ReadState.StateToReadState(state);
-        }
+        public async Task<State?> GetById(int stateId) =>
+            await _context.States.Include(p => p.Cities).FirstOrDefaultAsync(p => p.Id == stateId);
     }
 }

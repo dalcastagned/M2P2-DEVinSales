@@ -1,14 +1,13 @@
-using DevInSales.Core.Data.Dtos;
 using DevInSales.Core.Entities;
 
 namespace DevInSales.Core.Interfaces
 {
     public interface IAddressService
     {
-        List<ReadAddress> GetAll(int? stateId, int? cityId, string? street, string? cep);
-        Address? GetById(int addressId);
-        void Add(Address address);
-        void Update(Address address);
-        void Delete(Address address);
+        Task<IEnumerable<Address>> GetAll(int? stateId, int? cityId, string? street, string? cep);
+        Task<Address?> GetById(int addressId);
+        Task Add(Address address);
+        Task Update(Address address);
+        Task Delete(Address address);
     }
 }

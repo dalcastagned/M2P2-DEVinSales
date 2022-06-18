@@ -1,5 +1,4 @@
 using DevInSales.Core.Data.Context;
-using DevInSales.Core.Data.Dtos;
 using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -15,9 +14,8 @@ namespace DevInSales.Core.Services
             _context = context;
         }
 
-        public List<ReadCity> GetAll(int stateId, string? name)
-        {
-            return _context.Cities
+        public async Task<IEnumerable<City>> GetAll(int stateId, string? name) =>
+            await _context.Cities
                 .Where(
                     p =>
                         p.StateId == stateId
@@ -27,23 +25,15 @@ namespace DevInSales.Core.Services
                                 : true
                         )
                 )
-                .Select(c => ReadCity.CityToReadCity(c))
-                .ToList();
-        }
+                .ToListAsync();
 
-        public ReadCity GetById(int cityId)
-        {
-            var city = _context.Cities
-                .Include(p => p.State)
-                .FirstOrDefault(p => p.Id == cityId);
+        public async Task<City?> GetById(int cityId) =>
+            await _context.Cities.Include(p => p.State).FirstOrDefaultAsync(p => p.Id == cityId);
 
-            return ReadCity.CityToReadCity(city);
-        }
-
-        public void Add(City city)
+        public async Task Add(City city)
         {
             _context.Cities.Add(city);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

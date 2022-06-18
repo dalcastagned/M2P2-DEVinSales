@@ -1,8 +1,10 @@
 using DevInSales.Api.Dtos;
+using DevInSales.Core.Data.Dtos;
 using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace DevInSales.Api.Controllers
 {
@@ -25,75 +27,58 @@ namespace DevInSales.Api.Controllers
             _cityService = cityService;
         }
 
-        /// <summary>
-        /// Buscar endereços.
-        /// </summary>
-        /// <remarks>
-        /// Pesquisas opcionais: stateId, cityId, street, cep.
-        /// <para>
-        /// Exemplo de resposta:
-        /// [
-        ///   {
-        ///     "street": "Rua Devin",
-        ///     "number": "100",
-        ///     "complement": "Apto. 101",
-        ///     "cep": "95800000"
-        ///     "city": {
-        ///         "id": 1,
-        ///         "name": "Jaraguá do Sul"
-        ///     },
-        ///     "state": {
-        ///         "id": 1,
-        ///         "name": "Santa Catarina"
-        ///         "initials": "SC"
-        ///   }
-        /// ]
-        /// </para>
-        /// </remarks>
-        /// <returns>Lista de endereços</returns>
-        /// <response code="200">Sucesso.</response>
-        /// <response code="204">Pesquisa realizada com sucesso porém não retornou nenhum resultado</response>
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public ActionResult GetAll(int? stateId, int? cityId, string? street, string? cep)
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status200OK,
+            description: "Ok",
+            type: typeof(IEnumerable<ReadAddress>)
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        [SwaggerOperation(Summary = "Get addresses list")]
+        public async Task<IActionResult> GetAll(
+            int? stateId,
+            int? cityId,
+            string? street,
+            string? cep
+        )
         {
-            var addresses = _addressService.GetAll(stateId, cityId, street, cep);
-            if (addresses == null || addresses.Count == 0)
+            var addresses = await _addressService.GetAll(stateId, cityId, street, cep);
+            if (addresses == null)
                 return NoContent();
 
-            return Ok(addresses);
+            return Ok(addresses.Select(a => new ReadAddress(a)).ToList());
         }
 
-        /// <summary>
-        /// Cadastrar um endereço.
-        /// </summary>
-        /// <remarks>
-        /// Exemplo:
-        /// {
-        ///     "street": "Rua Devin",
-        ///     "number": "100",
-        ///     "complement": "Apto. 101",
-        ///     "cep": "95800000",
-        /// }
-        /// </remarks>
-        /// <param name="model">Dados do endereço</param>
-        /// <returns>Id do endereço criado</returns>
-        /// <response code="201">Cadastrado com sucesso.</response>
-        /// <response code="400">Bad Request, stateId informado é diferente do stateId da cidade cadastrada no banco de dados.</response>
-        /// <response code="404">Not Found, estado não encontrado no stateId informado.</response>
-        /// <response code="404">Not Found, cidade não encontrada no cityId informado.</response>
         [HttpPost("/api/state/{stateId}/city/{cityId}/address")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult AddAddress(int stateId, int cityId, AddAddress model)
+        [SwaggerResponse(statusCode: StatusCodes.Status201Created, description: "Created")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [SwaggerOperation(Summary = "Get address by id")]
+        public async Task<IActionResult> AddAddress(int stateId, int cityId, AddAddress model)
         {
-            var state = _stateService.GetById(stateId);
+            var state = await _stateService.GetById(stateId);
             if (state == null)
                 return NotFound();
 
-            var city = _cityService.GetById(cityId);
+            var city = await _cityService.GetById(cityId);
             if (city == null)
                 return NotFound();
 
@@ -107,30 +92,34 @@ namespace DevInSales.Api.Controllers
                 model.Complement,
                 cityId
             );
-            _addressService.Add(address);
+            await _addressService.Add(address);
 
             return CreatedAtAction(nameof(GetAll), new { stateId, cityId }, address.Id);
         }
 
-        /// <summary>
-        /// Deletar um endereço
-        /// </summary>
-        /// <response code="204">Endereço deletado com sucesso</response>
-        /// <response code="400">Bad Request, não é possível deletar este endereço pois ele está na lista de entrega</response>
-        /// <response code="404">Not Found, endereço não encontrado.</response>
         [HttpDelete("{addressId}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult DeleteAddress(int addressId)
+        [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Delete))]
+        [SwaggerOperation(Summary = "Delete city")]
+        public async Task<IActionResult> DeleteAddress(int addressId)
         {
-            var address = _addressService.GetById(addressId);
+            var address = await _addressService.GetById(addressId);
 
             if (address == null)
                 return NotFound();
             try
             {
-                _addressService.Delete(address);
+                await _addressService.Delete(address);
                 return NoContent();
             }
             catch (DbUpdateException)
@@ -138,38 +127,35 @@ namespace DevInSales.Api.Controllers
                 return BadRequest();
             }
         }
-
-        /// <summary>
-        /// Atualiza as propriedades do endereço especificado.
-        /// </summary>
-        /// <remarks>
-        /// Propriedades opcionais: Street, Cep, Number, Complement.
-        /// Exemplo:
-        ///    PATCH api/Address/addressId
-        ///    {
-        ///       "street": "string",
-        ///       "number": 0,
-        ///       "complement": "string",
-        ///       "cep": "string"
-        ///     }
-        /// </remarks>
-        /// <param name="addressId"></param>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        /// <response code="204">A atualização teve sucesso.</response>
-        /// <response code="400">Bad Request. Nenhuma propriedade foi informada no corpo ou o formato é inválido.</response>
-        /// <response code="404">Not Found. O endereço solicitado não existe.</response>
+        
         [HttpPatch("{addressId}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateAddress(int addressId, UpdateAddress model)
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status204NoContent,
+            description: "No Content"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [SwaggerOperation(Summary = "Update city")]
+        public async Task<IActionResult> UpdateAddress(int addressId, UpdateAddress model)
         {
-            var address = _addressService.GetById(addressId);
+            var address = await _addressService.GetById(addressId);
             if (address == null)
                 return NotFound();
 
-            if (model.Street == null && model.Cep == null && model.Number == null && model.Complement == null)
+            if (
+                model.Street == null
+                && model.Cep == null
+                && model.Number == null
+                && model.Complement == null
+            )
                 return BadRequest();
 
             if (model.Street != null)
@@ -184,7 +170,7 @@ namespace DevInSales.Api.Controllers
             if (model.Complement != null)
                 address.Complement = model.Complement;
 
-            _addressService.Update(address);
+            await _addressService.Update(address);
             return NoContent();
         }
     }
