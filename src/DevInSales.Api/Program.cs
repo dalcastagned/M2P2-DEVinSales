@@ -48,10 +48,16 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "DevInSales API");
+        options.InjectStylesheet("/swagger-ui/SwaggerDark.css");
+    });
     app.UseSwagger();
     app.UseSwaggerUI();
 }
