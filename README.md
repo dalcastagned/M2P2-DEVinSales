@@ -4,6 +4,19 @@
 
 <p align="left">API para CRUD de vendas com autenticação</p>
 
+## Observações de Uso
+
+<p align="left">Foi criado um usuário inicial com acesso a todas as roles que por padrão vem com a senha expirada então para usá-lo para definir roles de outros usuários você primeiro deve alterar a senha desse usuário:</p>
+<p align="left">Login: suporte@suporte.com</p>
+<p align="left">Senha: suporte</p> <br/>
+
+<p align="left">As roles definidas são: </p>
+<p align="left">Administrador: Pode listar, criar, editar e deletar</p>
+<p align="left">Gerente: Pode listar, criar e editar</p>
+<p align="left">Usuário: Pode listar</p> <br/>
+
+<p align="left">** Por padrão todo novo usuário já vem com a role Usuário predefinida **</p>
+
 ## Instalação e Inicialização
 
 ```sh
