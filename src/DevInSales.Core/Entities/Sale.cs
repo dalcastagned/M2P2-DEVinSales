@@ -26,8 +26,8 @@ namespace DevInSales.Core.Entities
         public DateTime SaleDate { get; private set; }        
 
         [JsonIgnore]        
-        public User2? Buyer { get; private set; }
+        public virtual User Buyer { get; private set; }
         [JsonIgnore]     
-        public User2? Seller { get; private set; }
+        public virtual User Seller { get; private set; }
     }
 }

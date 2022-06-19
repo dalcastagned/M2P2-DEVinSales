@@ -226,20 +226,23 @@ namespace DevInSales.Core.Data.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "a799d129-c11d-419a-9412-30576f5ead2d",
-                            Name = "Administrador"
+                            ConcurrencyStamp = "00222727-42b9-40a6-97dc-c3c968366b1d",
+                            Name = "Administrador",
+                            NormalizedName = "ADMINISTRADOR"
                         },
                         new
                         {
                             Id = 2,
-                            ConcurrencyStamp = "f9114dd4-6d0e-49be-aaac-79da1af7a120",
-                            Name = "Gerente"
+                            ConcurrencyStamp = "8c2a581d-70eb-4146-8203-48d3759982f3",
+                            Name = "Gerente",
+                            NormalizedName = "GERENTE"
                         },
                         new
                         {
                             Id = 3,
-                            ConcurrencyStamp = "9255abb0-1242-4114-9dd1-188448981c6e",
-                            Name = "Usuario"
+                            ConcurrencyStamp = "0c28de09-8c23-4c71-b136-e395150dc64e",
+                            Name = "Usuario",
+                            NormalizedName = "USUARIO"
                         });
                 });
 
@@ -569,8 +572,8 @@ namespace DevInSales.Core.Data.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            BirthDate = new DateTime(2022, 6, 19, 8, 37, 15, 835, DateTimeKind.Local).AddTicks(7986),
-                            ConcurrencyStamp = "5789bd5a-5a0f-4dc6-96ae-78b583c6e9dd",
+                            BirthDate = new DateTime(2022, 6, 19, 12, 27, 47, 186, DateTimeKind.Local).AddTicks(277),
+                            ConcurrencyStamp = "e74d0fc0-f75c-43a8-8d6f-109f1b6217df",
                             Email = "suporte@suporte.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
@@ -578,75 +581,11 @@ namespace DevInSales.Core.Data.Migrations
                             NormalizedEmail = "SUPORTE@SUPORTE.COM",
                             NormalizedUserName = "SUPORTE",
                             PasswordExpired = "18/06/2022",
-                            PasswordHash = "AQAAAAEAACcQAAAAEEgCV06KBfThNIjM0nhN2wPpM0ziE1yI4lCmXfj2A8Sk51HruUdCw/cfuxerKjLNkw==",
+                            PasswordHash = "AQAAAAEAACcQAAAAELL9PlBGv4qpuEF0zjzOT7qP0xRputeBZbaDQV7EGkxetJ6CApL9wqwCudDPrDmuQA==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "YYGXBMRWXF6A3J5PEYA3EVNXG6Y4YBTC",
                             TwoFactorEnabled = false,
                             UserName = "suporte"
-                        });
-                });
-
-            modelBuilder.Entity("DevInSales.Core.Entities.User2", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("BirthDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(150)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            BirthDate = new DateTime(1980, 10, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "Allie.Spencer@manuel.us",
-                            Name = "Allie Spencer",
-                            Password = "661845"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            BirthDate = new DateTime(1980, 10, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "Earnest@kari.biz",
-                            Name = "Lemuel Witting",
-                            Password = "800631"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            BirthDate = new DateTime(1980, 10, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "Adella_Shanahan@kenneth.biz",
-                            Name = "Kari Olson I",
-                            Password = "661342"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            BirthDate = new DateTime(1980, 10, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "Americo.Strosin@kale.tv",
-                            Name = "Marion Nolan DDS",
-                            Password = "661964"
                         });
                 });
 
@@ -813,13 +752,13 @@ namespace DevInSales.Core.Data.Migrations
 
             modelBuilder.Entity("DevInSales.Core.Entities.Sale", b =>
                 {
-                    b.HasOne("DevInSales.Core.Entities.User2", "Buyer")
+                    b.HasOne("DevInSales.Core.Entities.User", "Buyer")
                         .WithMany()
                         .HasForeignKey("BuyerId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DevInSales.Core.Entities.User2", "Seller")
+                    b.HasOne("DevInSales.Core.Entities.User", "Seller")
                         .WithMany()
                         .HasForeignKey("SellerId")
                         .OnDelete(DeleteBehavior.NoAction)

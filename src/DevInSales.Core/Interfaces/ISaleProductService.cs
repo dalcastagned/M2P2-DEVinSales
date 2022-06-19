@@ -10,11 +10,8 @@ namespace DevInSales.Core.Interfaces
 {
     public interface ISaleProductService
     {
+        Task<int> GetSaleProductById(int id);
 
-        public int GetSaleProductById(int id);
-
-        public int CreateSaleProduct(int saleId, SaleProductRequest saleProduct);
-        
-
+        Task<int> CreateSaleProduct(int saleId, SaleProductRequest saleProduct);
     }
 }

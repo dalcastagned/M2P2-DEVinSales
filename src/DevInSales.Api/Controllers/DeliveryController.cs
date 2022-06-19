@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace DevInSales.Api.Controllers
 {
@@ -17,17 +18,23 @@ namespace DevInSales.Api.Controllers
             _deliveryService = deliveryService;
         }
 
-        /// <summary>
-        /// Busca uma lista de entregas.
-        /// </summary>
-        ///<returns>Retorna uma lista de entregas à depender do parâmetro enviado (SaleId ou IdAdress).</returns>
-        /// <response code="200">Sucesso.</response>
-        /// <response code="204">No Content, caso não encontrado nenhum resultado.</response>
         [HttpGet]
         [Authorize(Policy = "RequireUserRole")]
-        public ActionResult<Delivery> GetDelivery(int? idAddress, int? saleId)
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Ok")]
+        [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        [SwaggerOperation(Summary = "Delivery list")]
+        public async Task<IActionResult> GetDelivery(int? idAddress, int? saleId)
         {
-            var delivery = _deliveryService.GetBy(idAddress, saleId);
+            var delivery = await _deliveryService.GetBy(idAddress, saleId);
             if (delivery.Count == 0)
                 return NoContent();
             return Ok(delivery);

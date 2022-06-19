@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DevInSales.Core.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20220619112910_AddSeedUser")]
-    partial class AddSeedUser
+    [Migration("20220619152747_RemoveOldUserEntity")]
+    partial class RemoveOldUserEntity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -228,20 +228,23 @@ namespace DevInSales.Core.Data.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "827e930d-1246-4179-9f08-1454c72d8105",
-                            Name = "Administrador"
+                            ConcurrencyStamp = "00222727-42b9-40a6-97dc-c3c968366b1d",
+                            Name = "Administrador",
+                            NormalizedName = "ADMINISTRADOR"
                         },
                         new
                         {
                             Id = 2,
-                            ConcurrencyStamp = "576126b1-4585-4c87-b12e-5a6be341d4f2",
-                            Name = "Gerente"
+                            ConcurrencyStamp = "8c2a581d-70eb-4146-8203-48d3759982f3",
+                            Name = "Gerente",
+                            NormalizedName = "GERENTE"
                         },
                         new
                         {
                             Id = 3,
-                            ConcurrencyStamp = "7a021da7-b844-4276-9e6f-367b1fe00720",
-                            Name = "Usuario"
+                            ConcurrencyStamp = "0c28de09-8c23-4c71-b136-e395150dc64e",
+                            Name = "Usuario",
+                            NormalizedName = "USUARIO"
                         });
                 });
 
@@ -571,8 +574,8 @@ namespace DevInSales.Core.Data.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
-                            BirthDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ConcurrencyStamp = "712db9ab-f081-4621-ae94-bef8d5228298",
+                            BirthDate = new DateTime(2022, 6, 19, 12, 27, 47, 186, DateTimeKind.Local).AddTicks(277),
+                            ConcurrencyStamp = "e74d0fc0-f75c-43a8-8d6f-109f1b6217df",
                             Email = "suporte@suporte.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
@@ -580,74 +583,11 @@ namespace DevInSales.Core.Data.Migrations
                             NormalizedEmail = "SUPORTE@SUPORTE.COM",
                             NormalizedUserName = "SUPORTE",
                             PasswordExpired = "18/06/2022",
-                            PasswordHash = "AQAAAAEAACcQAAAAEILicgVcoZdOLqUrW4aCUvvJMWCDl+d7Y8AIwuPyaH4A2hicRG6Q1C/oSEAqyOMGjA==",
+                            PasswordHash = "AQAAAAEAACcQAAAAELL9PlBGv4qpuEF0zjzOT7qP0xRputeBZbaDQV7EGkxetJ6CApL9wqwCudDPrDmuQA==",
                             PhoneNumberConfirmed = false,
+                            SecurityStamp = "YYGXBMRWXF6A3J5PEYA3EVNXG6Y4YBTC",
                             TwoFactorEnabled = false,
                             UserName = "suporte"
-                        });
-                });
-
-            modelBuilder.Entity("DevInSales.Core.Entities.User2", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("BirthDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(150)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            BirthDate = new DateTime(1980, 10, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "Allie.Spencer@manuel.us",
-                            Name = "Allie Spencer",
-                            Password = "661845"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            BirthDate = new DateTime(1980, 10, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "Earnest@kari.biz",
-                            Name = "Lemuel Witting",
-                            Password = "800631"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            BirthDate = new DateTime(1980, 10, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "Adella_Shanahan@kenneth.biz",
-                            Name = "Kari Olson I",
-                            Password = "661342"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            BirthDate = new DateTime(1980, 10, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "Americo.Strosin@kale.tv",
-                            Name = "Marion Nolan DDS",
-                            Password = "661964"
                         });
                 });
 
@@ -814,13 +754,13 @@ namespace DevInSales.Core.Data.Migrations
 
             modelBuilder.Entity("DevInSales.Core.Entities.Sale", b =>
                 {
-                    b.HasOne("DevInSales.Core.Entities.User2", "Buyer")
+                    b.HasOne("DevInSales.Core.Entities.User", "Buyer")
                         .WithMany()
                         .HasForeignKey("BuyerId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DevInSales.Core.Entities.User2", "Seller")
+                    b.HasOne("DevInSales.Core.Entities.User", "Seller")
                         .WithMany()
                         .HasForeignKey("SellerId")
                         .OnDelete(DeleteBehavior.NoAction)

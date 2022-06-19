@@ -3,6 +3,7 @@ using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace DevInSales.Api.Controllers
 {
@@ -21,26 +22,34 @@ namespace DevInSales.Api.Controllers
         // Endpoint criado apenas para servir como path do POST {saleId}/item
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("saleById/item")]
-        public ActionResult<int> GetSaleProductById(int saleProductId)
+        public async Task<IActionResult> GetSaleProductById(int saleProductId)
         {
-            var id = _saleProductService.GetSaleProductById(saleProductId);
+            var id = await _saleProductService.GetSaleProductById(saleProductId);
             if (id == null)
                 return NotFound();
 
             return Ok(id);
         }
 
-        /// <summary>
-        /// Cadastra um produto em uma venda.
-        /// </summary>
-        ///<returns> Retorna um id da tabela saleProduct.</returns>
-        /// <response code="201">Criado com sucesso.</response>
-        /// <response code="400">Bad Request, caso não seja enviado um productId ou quando a quantidade/preço enviados forem menor ou igual a zero.</response>
-        /// <response code="404">Not Found, caso o productId ou o saleId não existam.</response>
         [HttpPost("{saleId}/item")]
         [Authorize(Policy = "RequireManagerRole")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult<int> CreateSaleProduct(int saleId, SaleProductRequest saleProduct)
+        [SwaggerResponse(statusCode: StatusCodes.Status201Created, description: "Created")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [SwaggerOperation(Summary = "Add product to sale")]
+        public async Task<IActionResult> CreateSaleProduct(
+            int saleId,
+            SaleProductRequest saleProduct
+        )
         {
             try
             {
@@ -50,7 +59,7 @@ namespace DevInSales.Api.Controllers
                 if (saleProduct.Amount == null)
                     saleProduct.Amount = 1;
 
-                var id = _saleProductService.CreateSaleProduct(saleId, saleProduct);
+                var id = await _saleProductService.CreateSaleProduct(saleId, saleProduct);
                 return CreatedAtAction(nameof(GetSaleProductById), new { saleProductId = id }, id);
             }
             catch (ArgumentException ex)

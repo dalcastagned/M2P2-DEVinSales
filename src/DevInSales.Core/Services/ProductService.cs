@@ -13,35 +13,42 @@ namespace DevInSales.Core.Services
         {
             _context = context;
         }
-        public void Atualizar()
+
+        public async Task Atualizar()
         {
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        // obtém o produto por id 
-        public Product? ObterProductPorId(int id)
+        // obtém o produto por id
+        public async Task<Product?> ObterProductPorId(int id)
         {
-            return _context.Products.FirstOrDefault(p => p.Id == id);
+            return await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
         }
 
         // verifica se o nome já existe na base de dados
-        public bool ProdutoExiste(string nome)
+        public async Task<bool> ProdutoExiste(string nome)
         {
-            var produtos = _context.Products.Where(produto => (produto.Name.ToUpper() == nome.ToUpper())).ToList();
+            var produtos = await _context.Products
+                .Where(produto => (produto.Name.ToUpper() == nome.ToUpper()))
+                .ToListAsync();
             return produtos.Count > 0 ? true : false;
         }
-        public void Delete(int id)
+
+        public async Task Delete(int id)
         {
-            var produto = ObterProductPorId(id);
+            var produto = await ObterProductPorId(id);
             if (produto == null)
                 throw new Exception("o Produto não existe");
             _context.Products.Remove(produto);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public List<Product> ObterProdutos(string? name, decimal? priceMin, decimal? priceMax)
+        public async Task<List<Product>> ObterProdutos(
+            string? name,
+            decimal? priceMin,
+            decimal? priceMax
+        )
         {
-
             var query = _context.Products.AsQueryable();
             if (!string.IsNullOrEmpty(name))
                 query = query.Where(p => p.Name.ToUpper().Contains(name.ToUpper()));
@@ -50,13 +57,13 @@ namespace DevInSales.Core.Services
             if (priceMax.HasValue)
                 query = query.Where(p => p.SuggestedPrice <= priceMax);
 
-            return query.ToList();
+            return await query.ToListAsync();
         }
 
-        public int CreateNewProduct(Product product)
+        public async Task<int> CreateNewProduct(Product product)
         {
             _context.Products.Add(product);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return product.Id;
         }
     }
