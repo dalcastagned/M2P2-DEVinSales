@@ -3,65 +3,57 @@ using DevInSales.Core.Data.Dtos;
 using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DevInSales.Core.Services
 {
     public class SaleProductService : ISaleProductService
     {
-
         private readonly DataContext _context;
 
-        public SaleProductService (DataContext context)
+        public SaleProductService(DataContext context)
         {
             _context = context;
         }
 
-        
-        public int CreateSaleProduct(int saleId, SaleProductRequest saleProduct)
+        public async Task<int> CreateSaleProduct(int saleId, SaleProductRequest saleProduct)
         {
-
-            if (!_context.Products.Any(p => p.Id == saleProduct.ProductId) || !_context.Sales.Any(p => p.Id == saleId))
+            if (
+                !await _context.Products.AnyAsync(p => p.Id == saleProduct.ProductId)
+                || !await _context.Sales.AnyAsync(p => p.Id == saleId)
+            )
                 throw new ArgumentException("ProductId ou SaleId não encontrado.");
 
             if (saleProduct.UnitPrice == null)
-                saleProduct.UnitPrice = _context.Products.FirstOrDefault(p => p.Id == saleProduct.ProductId).SuggestedPrice;
+            {
+                var product = await _context.Products.FirstOrDefaultAsync(
+                    p => p.Id == saleProduct.ProductId
+                );
+                saleProduct.UnitPrice = product?.SuggestedPrice;
+            }
 
             if (saleProduct.UnitPrice <= 0 || saleProduct.Amount <= 0)
                 throw new ArgumentException("Preço ou quantidade não podem ser negativos.");
 
-            
             var saleProductEntity = saleProduct.ConvertIntoSaleProduct(saleId);
             _context.SaleProducts.Add(saleProductEntity);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return saleProductEntity.Id;
         }
 
-       
-        public int GetSaleProductById(int saleProductId)
+        public async Task<int> GetSaleProductById(int saleProductId)
         {
-            SaleProduct? saleProduct = _context.SaleProducts
+            SaleProduct? saleProduct = await _context.SaleProducts
                 .Include(p => p.Sales)
                 .Include(p => p.Products)
-                .FirstOrDefault(p => p.Id == saleProductId);
+                .FirstOrDefaultAsync(p => p.Id == saleProductId);
 
             if (saleProduct == null)
             {
-                
                 return 0;
             }
 
             return saleProduct.Id;
-
         }
-
-        
-
-
     }
 }

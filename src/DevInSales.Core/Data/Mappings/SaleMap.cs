@@ -13,13 +13,10 @@ namespace DevInSales.Core.Data.Mappings
             // Opcional, pois por convenção nossa propriedade já seria a chave primária
             builder.HasKey(p => p.Id);
 
-            builder.Property(p => p.SaleDate)
-                .HasColumnType("timestamptz");
-
             builder.HasOne(p => p.Buyer)
                 .WithMany()
                 .HasForeignKey(p => p.BuyerId)
-                .OnDelete(DeleteBehavior.NoAction);           
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(p => p.Seller)
                 .WithMany()

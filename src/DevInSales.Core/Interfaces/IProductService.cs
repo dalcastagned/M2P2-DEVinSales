@@ -4,12 +4,11 @@ namespace DevInSales.Core.Interfaces
 {
     public interface IProductService
     {
-        public void Atualizar();
-        public Product? ObterProductPorId(int id);
-        public bool ProdutoExiste(string nome);
-        public void Delete(int id);
-        public List<Product> ObterProdutos(string? name, decimal? priceMin, decimal? priceMax);
-        public int CreateNewProduct(Product product);
+        Task Atualizar();
+        Task<Product?> ObterProductPorId(int id);
+        Task<bool> ProdutoExiste(string nome);
+        Task Delete(int id);
+        Task<List<Product>> ObterProdutos(string? name, decimal? priceMin, decimal? priceMax);
+        Task<int> CreateNewProduct(Product product);
     }
-
 }

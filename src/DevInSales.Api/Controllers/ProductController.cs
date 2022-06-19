@@ -1,11 +1,14 @@
 using DevInSales.Api.Dtos;
 using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace DevInSales.Api.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
@@ -16,85 +19,83 @@ namespace DevInSales.Api.Controllers
             _productService = productService;
         }
 
-        /// <summary>
-        /// Buscar produtos por id.
-        /// </summary>
-        /// <remarks>
-        /// Exemplo:
-        ///   {
-        ///     "id": 1,
-        ///     "name": "Produto 1",
-        ///     "description": "Descrição do produto 1",
-        ///     "price": 100.00,
-        ///   }
-        /// </remarks>
-        /// <returns></returns>
-        /// <response code="204">A atualização teve sucesso.</response>
-        /// <response code="404">Not Found. O Produto solicitado não existe.</response>
-
         [HttpGet("{id}")]
-        public ActionResult<Product> ObterProdutoPorId(int id)
+        [Authorize(Policy = "RequireUserRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        [SwaggerOperation(Summary = "Get products by id")]
+        public async Task<IActionResult> ObterProdutoPorId(int id)
         {
-            var produto = _productService.ObterProductPorId(id);
+            var produto = await _productService.ObterProductPorId(id);
             if (produto == null)
                 return NotFound();
             return Ok(produto);
         }
 
-
-        /// <summary>
-        ///  Modificar produto.
-        /// </summary>
-        /// <remarks>
-        /// Exemplo:
-        ///   {
-        ///     "name": "Produto 2",
-        ///     "description": "Descrição do produto 2",
-        ///     "price": 105.00,
-        ///   }
-        /// </remarks>
-        /// <returns></returns>
-        /// <response code="200">A atualização teve sucesso.</response>
-        /// <response code="204">No Content, caso não encontrado nenhum resultado.</response>
-        /// <response code="400">Bad Request, não é possível deletar este endereço pois ele está na lista de entrega</response>
-
-
         [HttpPut("{id}")]
-        public ActionResult AtualizarProduto(AddProduct model, int id)
+        [Authorize(Policy = "RequireManagerRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Ok")]
+        [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Put))]
+        [SwaggerOperation(Summary = "Update product")]
+        public async Task<IActionResult> AtualizarProduto(AddProduct model, int id)
         {
-            var productOld = _productService.ObterProductPorId(id);
+            var productOld = await _productService.ObterProductPorId(id);
 
             if (model == null)
                 return NotFound();
             if (!ModelState.IsValid || model.Name.ToLower() == "string")
-                return BadRequest("O objeto tem que ser construido com um nome e nome tem que ser diferente de string");
-            if (_productService.ProdutoExiste(model.Name))
+                return BadRequest(
+                    "O objeto tem que ser construido com um nome e nome tem que ser diferente de string"
+                );
+            if (await _productService.ProdutoExiste(model.Name))
                 return BadRequest("esse nome já existe na base de dados");
-
 
             productOld.AtualizarDados(model.Name, model.SuggestedPrice);
 
-            _productService.Atualizar();
+            await _productService.Atualizar();
 
             return NoContent();
         }
 
-
-        /// <summary>
-        ///  Deleta um produto pelo id.
-        /// </summary>
-        /// <response code="204">No Content, caso não encontrado nenhum resultado.</response>
-        /// <response code="404">Not Found, endereço não encontrado.</response>
-        /// <response code="400">Bad Request, stateId informado é diferente do stateId da cidade cadastrada no banco de dados.</response>
-        /// <response code="500"> Internal Server Error, erro interno do servidor. </response>
-
-
         [HttpDelete("{id}")]
-        public ActionResult Delete(int id)
+        [Authorize(Policy = "RequireAdministratorRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Ok")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Delete))]
+        [SwaggerOperation(Summary = "Delete product")]
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                _productService.Delete(id);
+                await _productService.Delete(id);
                 return NoContent();
             }
             catch (Exception ex)
@@ -102,70 +103,75 @@ namespace DevInSales.Api.Controllers
                 if (ex.Message.Contains("não existe"))
                     return NotFound();
                 if (ex.HResult == -2146233088)
-                    return BadRequest("O produto especificado não pode ser excluido, porque já está atrelado a outra tabela!");
+                    return BadRequest(
+                        "O produto especificado não pode ser excluido, porque já está atrelado a outra tabela!"
+                    );
 
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Mensagem = ex.Message });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new { Mensagem = ex.Message }
+                );
             }
-
         }
 
-        /// <summary>
-        /// Busca todos os produtos.
-        /// </summary>
-        /// <remarks>
-        /// Exemplo de resposta:
-        ///  {
-        ///    "name": "produto 1"
-        ///    "suggestedPrice": 100.00
-        ///  }
-        /// </remarks>
-        /// <returns>Lista de produtos</returns>
-        /// <response code="200">Sucesso.</response>
-        /// <response code="204">No Content, caso não encontrado nenhum resultado.</response>
-        /// <response code="400">Bad Request, stateId informado é diferente do stateId da cidade cadastrada no banco de dados.</response>
-
         [HttpGet]
-        public ActionResult<List<Product>> GetAll(string? name, decimal? priceMin, decimal? priceMax)
+        [Authorize(Policy = "RequireUserRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Ok")]
+        [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        [SwaggerOperation(Summary = "Get all products")]
+        public async Task<IActionResult> GetAll(string? name, decimal? priceMin, decimal? priceMax)
         {
             try
             {
                 if (priceMax < priceMin)
                     return BadRequest("O preço mínimo não pode ser maior que o preço máximo");
 
-                var ProductList = _productService.ObterProdutos(name, priceMin, priceMax);
+                var ProductList = await _productService.ObterProdutos(name, priceMin, priceMax);
                 if (ProductList.Count == 0 || ProductList == null)
                     return NoContent();
                 return Ok(ProductList);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Mensagem = ex.Message });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new { Mensagem = ex.Message }
+                );
             }
         }
 
-
-        /// <summary>
-        /// Cadastrar um produto.
-        /// </summary>
-        /// <remarks>
-        /// Exemplo:
-        /// {
-        ///    "name": "Produto 1",
-        ///    "suggestedPrice": 100.00
-        /// }
-        /// </remarks>
-        /// <returns> product id </returns>
-        /// <response code="201">Cadastrado com sucesso.</response>
-        /// <response code="400">Bad Request Esse produto já existe na base de dados</response>
         [HttpPost]
-        public ActionResult PostProduct(AddProduct model)
+        [Authorize(Policy = "RequireManagerRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status201Created, description: "Created")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [SwaggerOperation(Summary = "Add product")]
+        public async Task<IActionResult> PostProduct(AddProduct model)
         {
             var product = new Product(model.Name, model.SuggestedPrice);
 
-            if (_productService.ProdutoExiste(product.Name))
+            if (await _productService.ProdutoExiste(product.Name))
                 return BadRequest("Esse produto já existe na base de dados");
 
-            var ProductId = _productService.CreateNewProduct(product);
+            var ProductId = await _productService.CreateNewProduct(product);
 
             return CreatedAtAction(nameof(ObterProdutoPorId), new { id = ProductId }, ProductId);
         }

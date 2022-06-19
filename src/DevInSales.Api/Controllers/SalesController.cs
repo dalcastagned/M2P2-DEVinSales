@@ -1,14 +1,15 @@
-
 using DevInSales.Core.Data.Dtos;
 using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace DevInSales.Api.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     [Route("api/sales/")]
-
     public class SalesController : ControllerBase
     {
         private readonly ISaleService _saleService;
@@ -18,68 +19,97 @@ namespace DevInSales.Api.Controllers
             _saleService = saleService;
         }
 
-        /// <summary>
-        /// Busca uma venda com uma lista de produtos.
-        /// </summary>
-        ///<returns>Retorna uma venda com uma lista de produtos.</returns>
-        /// <response code="200">Sucesso.</response>
-        /// <response code="404">Not Found, quando o saleId não for encontrado.</response>
         [HttpGet("{saleId}")]
-        public ActionResult<SaleResponse> GetSaleById(int saleId)
+        [Authorize(Policy = "RequireUserRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Ok")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        [SwaggerOperation(Summary = "Get sales")]
+        public async Task<IActionResult> GetSaleById(int saleId)
         {
-            var sale = _saleService.GetSaleById(saleId);
+            var sale = await _saleService.GetSaleById(saleId);
             if (sale == null)
                 return NotFound();
 
             return Ok(sale);
         }
 
-        /// <summary>
-        /// Busca as vendas de um determinado usuário.
-        /// </summary>
-        ///<returns>Retorna todas as vendas de um determinado usuário.</returns>
-        /// <response code="200">Sucesso.</response>
-        /// <response code="204">No Content, caso o usuário ainda não tenha cadastrado uma venda.</response>
         [HttpGet("/api/user/{userId}/sales")]
-        public ActionResult<Sale> GetSalesBySellerId(int? userId)
+        [Authorize(Policy = "RequireUserRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Ok")]
+        [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        [SwaggerOperation(Summary = "Get sales by user")]
+        public async Task<IActionResult> GetSalesBySellerId(int? userId)
         {
-            var sales = _saleService.GetSaleBySellerId(userId);
+            var sales = await _saleService.GetSaleBySellerId(userId);
             if (sales.Count == 0)
                 return NoContent();
             return Ok(sales);
         }
 
-        /// <summary>
-        /// Busca as compras de um determinado usuário.
-        /// </summary>
-        ///<returns>Retorna todas as compras de um determinado usuário.</returns>
-        /// <response code="200">Sucesso.</response>
-        /// <response code="204">No Content, caso o usuário ainda não tenha cadastrado uma compra.</response>
         [HttpGet("/api/user/{userId}/buy")]
-        public ActionResult<Sale> GetSalesByBuyerId(int? userId)
+        [Authorize(Policy = "RequireUserRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Ok")]
+        [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        [SwaggerOperation(Summary = "Get buies by user")]
+        public async Task<IActionResult> GetSalesByBuyerId(int? userId)
         {
-            var sales = _saleService.GetSaleByBuyerId(userId);
+            var sales = await _saleService.GetSaleByBuyerId(userId);
             if (sales.Count == 0)
                 return NoContent();
             return Ok(sales);
         }
 
-        /// <summary>
-        /// Cria uma nova venda para um usuário.
-        /// </summary>
-        ///<returns>Retorna o id da venda criada.</returns>
-        /// <response code="201">Criado com sucesso.</response>
-        /// <response code="400">Bad Request, quando não é enviado um buyerId.</response>
-        /// <response code="404">Not Found, caso não exista um usuário com o Id enviado.</response>
         [HttpPost("/api/user/{userId}/sales")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-
-        public ActionResult<int> CreateSaleBySellerId(int userId, SaleBySellerRequest saleRequest)
+        [Authorize(Policy = "RequireManagerRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Ok")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [SwaggerOperation(Summary = "Add sales")]
+        public async Task<IActionResult> CreateSaleBySellerId(
+            int userId,
+            SaleBySellerRequest saleRequest
+        )
         {
             try
             {
                 Sale sale = saleRequest.ConvertToEntity(userId);
-                var id = _saleService.CreateSaleByUserId(sale);
+                var id = await _saleService.CreateSaleByUserId(sale);
                 return CreatedAtAction(nameof(GetSaleById), new { saleId = id }, id);
             }
             catch (ArgumentNullException ex)
@@ -92,21 +122,29 @@ namespace DevInSales.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Altera o preço de um produto em determinada venda.
-        /// </summary>
-        ///<returns>Retorna No Content.</returns>
-        /// <response code="204">Alterado com sucesso.</response>
-        /// <response code="400">Bad Request, caso o preço digitado seja menor ou igual a zero.</response>
-        /// <response code="404">Not Found, caso não exista uma venda com o saleId enviado ou um SaleProduct com o productId enviado</response>
         [HttpPatch("{saleId}/product/{productId}/price/{unitPrice}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-
-        public ActionResult UpdateUnitPrice(int saleId, int productId, decimal unitPrice)
+        [Authorize(Policy = "RequireManagerRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Ok")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [SwaggerOperation(Summary = "Update price")]
+        public async Task<IActionResult> UpdateUnitPrice(
+            int saleId,
+            int productId,
+            decimal unitPrice
+        )
         {
             try
             {
-                _saleService.UpdateUnitPrice(saleId, productId, unitPrice);
+                await _saleService.UpdateUnitPrice(saleId, productId, unitPrice);
                 return NoContent();
             }
             catch (ArgumentException ex)
@@ -119,25 +157,26 @@ namespace DevInSales.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Altera a quantidade de um produto em determinada venda.
-        /// </summary>
-        ///<returns>Retorna No Content.</returns>
-        /// <response code="204">Alterado com sucesso.</response>
-        /// <response code="400">Bad Request, caso a quantidade digitada seja menor ou igual a zero.</response>
-        /// <response code="404">Not Found, caso não exista uma venda com o saleId enviado ou um SaleProduct com o productId enviado.</response>
         [HttpPatch("{saleId}/product/{productId}/amount/{amount}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-
-        public ActionResult UpdateAmount(int saleId, int productId, int amount)
+        [Authorize(Policy = "RequireManagerRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Ok")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [SwaggerOperation(Summary = "Update quantity of products")]
+        public async Task<IActionResult> UpdateAmount(int saleId, int productId, int amount)
         {
-
             try
             {
-
-                _saleService.UpdateAmount(saleId, productId, amount);
+                await _saleService.UpdateAmount(saleId, productId, amount);
                 return NoContent();
-
             }
             catch (ArgumentException ex)
             {
@@ -146,23 +185,32 @@ namespace DevInSales.Api.Controllers
 
                 return BadRequest(ex.Message);
             }
-
         }
-        /// <summary>
-        /// Cria uma nova compra para um usuário.
-        /// </summary>
-        ///<returns>Retorna o id da compra criada.</returns>
-        /// <response code="201">Criado com sucesso.</response>
-        /// <response code="400">Bad Request, quando não enviado um sellerId.</response>
-        /// <response code="404">Not Found, caso não exista um usuário com o Id enviado.</response>
+
         [HttpPost("/api/user/{userId}/buy")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult<int> CreateSaleByBuyerId(int userId, SaleByBuyerRequest saleRequest)
+        [Authorize(Policy = "RequireManagerRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status201Created, description: "Created")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [SwaggerOperation(Summary = "Add buy")]
+        public async Task<IActionResult> CreateSaleByBuyerId(
+            int userId,
+            SaleByBuyerRequest saleRequest
+        )
         {
             try
             {
                 Sale sale = saleRequest.ConvertToEntity(userId);
-                var id = _saleService.CreateSaleByUserId(sale);
+                var id = await _saleService.CreateSaleByUserId(sale);
                 return CreatedAtAction(nameof(GetSaleById), new { saleId = id }, id);
             }
             catch (ArgumentNullException ex)
@@ -174,17 +222,26 @@ namespace DevInSales.Api.Controllers
                 return NotFound(ex.Message);
             }
         }
-        /// <summary>
-        /// Cria uma nova entrega para uma venda.
-        /// </summary>
-        ///<returns>Retorna o Id da entrega criada.</returns>
-        /// <response code="201">Criado com sucesso.</response>
-        /// <response code="400">Bad Request, caso não enviado um AddressId ou a data enviada seja anterior a data atual.</response>
-        /// <response code="404">Not Found, caso não exista um saleId ou um addressId igual ao enviado.</response>
 
         [HttpPost("{saleId}/deliver")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult<int> CreateDeliveryForASale(int saleId, DeliveryRequest deliveryRequest)
+        [Authorize(Policy = "RequireManagerRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status201Created, description: "Created")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status401Unauthorized,
+            description: "Unauthorized"
+        )]
+        [SwaggerResponse(statusCode: StatusCodes.Status404NotFound, description: "Not Found")]
+        [SwaggerResponse(
+            statusCode: StatusCodes.Status500InternalServerError,
+            description: "Server Error"
+        )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [SwaggerOperation(Summary = "Add delivery")]
+        public async Task<IActionResult> CreateDeliveryForASale(
+            int saleId,
+            DeliveryRequest deliveryRequest
+        )
         {
             try
             {
@@ -199,33 +256,28 @@ namespace DevInSales.Api.Controllers
 
                 Delivery delivery = deliveryRequest.ConvertToEntity(saleId);
 
-                int id = _saleService.CreateDeliveryForASale(delivery);
+                int id = await _saleService.CreateDeliveryForASale(delivery);
 
                 return CreatedAtAction(nameof(GetDeliveryById), new { deliveryId = id }, id);
             }
             catch (ArgumentException ex)
             {
-
                 if (ex.ParamName.Equals("saleId") || ex.ParamName.Equals("AddressId"))
                     return NotFound(ex.Message);
 
-
                 return BadRequest();
-
             }
-
         }
 
         //Endpoint criado apenas para servir como caminho do POST {saleId}/deliver
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("/api/delivery/{deliveryId}")]
-        public ActionResult<Delivery> GetDeliveryById(int deliveryId)
+        public async Task<IActionResult> GetDeliveryById(int deliveryId)
         {
-            Delivery delivery = _saleService.GetDeliveryById(deliveryId);
+            Delivery delivery = await _saleService.GetDeliveryById(deliveryId);
             if (delivery == null)
                 return NoContent();
             return Ok(delivery);
         }
-
     }
 }

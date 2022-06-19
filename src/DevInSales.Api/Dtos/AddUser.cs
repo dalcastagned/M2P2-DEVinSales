@@ -1,4 +1,4 @@
 namespace DevInSales.Api.Dtos
 {
-    public record AddUser(string Email, string Password, string Name, DateTime BirthDate) { }
+    public record AddUser(string Name, string Username, string Email, string Password, DateTime BirthDate) { }
 }
