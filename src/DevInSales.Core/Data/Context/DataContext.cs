@@ -6,7 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DevInSales.Core.Data.Context
 {
-    public class DataContext : IdentityDbContext<
+    public class DataContext
+        : IdentityDbContext<
               User,
               Role,
               int,
@@ -17,14 +18,16 @@ namespace DevInSales.Core.Data.Context
               IdentityUserToken<int>
           >
     {
-        public 
-            DataContext(DbContextOptions options) : base(options) { }
+        public DataContext(DbContextOptions options) : base(options)
+        {
+            this.Database.EnsureCreated();
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-            
+
             this.SeedRoles(modelBuilder);
             this.SeedUsers(modelBuilder);
             this.SeedUserRoles(modelBuilder);
@@ -48,8 +51,9 @@ namespace DevInSales.Core.Data.Context
                 }
             );
         }
+
         public DbSet<Product> Products { get; set; }
-        public DbSet<Address> Addresses{ get; set; }
+        public DbSet<Address> Addresses { get; set; }
         public DbSet<City> Cities { get; set; }
         public DbSet<State> States { get; set; }
         public DbSet<Sale> Sales { get; set; }
@@ -58,12 +62,30 @@ namespace DevInSales.Core.Data.Context
 
         private void SeedRoles(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Role>().HasData(
-                new Role { Id = 1, Name = "Administrador", NormalizedName = "ADMINISTRADOR" },
-                new Role { Id = 2, Name = "Gerente", NormalizedName = "GERENTE" },
-                new Role { Id = 3, Name = "Usuario", NormalizedName = "USUARIO" }
-            );
+            modelBuilder
+                .Entity<Role>()
+                .HasData(
+                    new Role
+                    {
+                        Id = 1,
+                        Name = "Administrador",
+                        NormalizedName = "ADMINISTRADOR"
+                    },
+                    new Role
+                    {
+                        Id = 2,
+                        Name = "Gerente",
+                        NormalizedName = "GERENTE"
+                    },
+                    new Role
+                    {
+                        Id = 3,
+                        Name = "Usuario",
+                        NormalizedName = "USUARIO"
+                    }
+                );
         }
+
         private void SeedUsers(ModelBuilder modelBuilder)
         {
             User user = new User()
@@ -84,16 +106,16 @@ namespace DevInSales.Core.Data.Context
 
             modelBuilder.Entity<User>().HasData(user);
         }
+
         private void SeedUserRoles(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<UserRole>().HasData(
-                new UserRole { UserId = 1, RoleId = 1 },
-                new UserRole { UserId = 1, RoleId = 2 },
-                new UserRole { UserId = 1, RoleId = 3 }
-            );
+            modelBuilder
+                .Entity<UserRole>()
+                .HasData(
+                    new UserRole { UserId = 1, RoleId = 1 },
+                    new UserRole { UserId = 1, RoleId = 2 },
+                    new UserRole { UserId = 1, RoleId = 3 }
+                );
         }
-
     }
 }
-        
-  

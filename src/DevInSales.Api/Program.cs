@@ -34,8 +34,6 @@ builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-// AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
 builder.Services.AddIdentityCore<User>(
     options =>
     {
@@ -143,6 +141,7 @@ builder.Services.AddSwaggerGen(
                 }
             }
         );
+        c.EnableAnnotations();
         c.SwaggerDoc(
             "v1",
             new OpenApiInfo
@@ -157,14 +156,31 @@ builder.Services.AddSwaggerGen(
                 }
             }
         );
-        var xmlFile = "DevInSales.API.xml";
-        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    }
+);
 
-        c.IncludeXmlComments(xmlPath);
+builder.Services.AddCors(
+    options =>
+    {
+        options.AddPolicy(
+            "AllowAll",
+            builder =>
+            {
+                builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+            }
+        );
+    }
+);
+
+builder.WebHost.ConfigureKestrel(
+    options =>
+    {
+        options.ListenAnyIP(80);
     }
 );
 
 var app = builder.Build();
+
 app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
@@ -185,5 +201,6 @@ app.UseAuthorization();
 app.UseHttpsRedirection();
 app.MapControllers();
 app.UseAuthentication();
+app.UseCors("AllowAll");
 
 app.Run();

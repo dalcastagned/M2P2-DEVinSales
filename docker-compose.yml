@@ -1,0 +1,23 @@
+﻿version: '3.4'
+services:
+  devinsales:
+    build: 
+      context: .
+      dockerfile: src/DevInSales.Api/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports: 
+      - "7140:80"
+    depends_on:
+      - mssql-server
+  mssql-server:
+    image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Devinsales123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - C:\dados\volumes\sqlserver:/var/opt/mssql/data
+    expose:
+      - 1433
