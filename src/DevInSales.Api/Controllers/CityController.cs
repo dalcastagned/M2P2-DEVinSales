@@ -2,12 +2,14 @@ using DevInSales.Api.Dtos;
 using DevInSales.Core.Data.Dtos;
 using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace DevInSales.Api.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class CityController : ControllerBase
     {
         private readonly IStateService _stateService;
@@ -20,6 +22,7 @@ namespace DevInSales.Api.Controllers
         }
 
         [HttpGet("/api/State/{stateId}/city")]
+        [Authorize(Policy = "RequireUserRole")]
         [SwaggerResponse(
             statusCode: StatusCodes.Status200OK,
             description: "Ok",
@@ -50,6 +53,7 @@ namespace DevInSales.Api.Controllers
         }
 
         [HttpGet("/api/State/{stateId}/city/{cityId}")]
+        [Authorize(Policy = "RequireUserRole")]
         [SwaggerResponse(
             statusCode: StatusCodes.Status200OK,
             description: "Ok",
@@ -84,10 +88,8 @@ namespace DevInSales.Api.Controllers
         }
 
         [HttpPost("/api/State/{stateId}/city")]
-        [SwaggerResponse(
-            statusCode: StatusCodes.Status201Created,
-            description: "Created"
-        )]
+        [Authorize(Policy = "RequireManagerRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status201Created, description: "Created")]
         [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
         [SwaggerResponse(
             statusCode: StatusCodes.Status401Unauthorized,

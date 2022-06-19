@@ -2,6 +2,7 @@ using DevInSales.Api.Dtos;
 using DevInSales.Core.Data.Dtos;
 using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
@@ -9,6 +10,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace DevInSales.Api.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     [Route("api/[controller]")]
     public class AddressController : ControllerBase
     {
@@ -28,6 +30,7 @@ namespace DevInSales.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "RequireUserRole")]
         [SwaggerResponse(
             statusCode: StatusCodes.Status200OK,
             description: "Ok",
@@ -59,6 +62,7 @@ namespace DevInSales.Api.Controllers
         }
 
         [HttpPost("/api/state/{stateId}/city/{cityId}/address")]
+        [Authorize(Policy = "RequireManagerRole")]
         [SwaggerResponse(statusCode: StatusCodes.Status201Created, description: "Created")]
         [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
         [SwaggerResponse(
@@ -98,6 +102,7 @@ namespace DevInSales.Api.Controllers
         }
 
         [HttpDelete("{addressId}")]
+        [Authorize(Policy = "RequireAdministratorRole")]
         [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
         [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
         [SwaggerResponse(
@@ -127,12 +132,10 @@ namespace DevInSales.Api.Controllers
                 return BadRequest();
             }
         }
-        
+
         [HttpPatch("{addressId}")]
-        [SwaggerResponse(
-            statusCode: StatusCodes.Status204NoContent,
-            description: "No Content"
-        )]
+        [Authorize(Policy = "RequireManagerRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
         [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
         [SwaggerResponse(
             statusCode: StatusCodes.Status401Unauthorized,

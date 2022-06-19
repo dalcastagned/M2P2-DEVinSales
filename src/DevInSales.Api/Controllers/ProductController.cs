@@ -1,11 +1,13 @@
 using DevInSales.Api.Dtos;
 using DevInSales.Core.Entities;
 using DevInSales.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevInSales.Api.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
@@ -33,6 +35,7 @@ namespace DevInSales.Api.Controllers
         /// <response code="404">Not Found. O Produto solicitado não existe.</response>
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "RequireUserRole")]
         public ActionResult<Product> ObterProdutoPorId(int id)
         {
             var produto = _productService.ObterProductPorId(id);
@@ -40,7 +43,6 @@ namespace DevInSales.Api.Controllers
                 return NotFound();
             return Ok(produto);
         }
-
 
         /// <summary>
         ///  Modificar produto.
@@ -60,6 +62,7 @@ namespace DevInSales.Api.Controllers
 
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "RequireManagerRole")]
         public ActionResult AtualizarProduto(AddProduct model, int id)
         {
             var productOld = _productService.ObterProductPorId(id);
@@ -67,10 +70,11 @@ namespace DevInSales.Api.Controllers
             if (model == null)
                 return NotFound();
             if (!ModelState.IsValid || model.Name.ToLower() == "string")
-                return BadRequest("O objeto tem que ser construido com um nome e nome tem que ser diferente de string");
+                return BadRequest(
+                    "O objeto tem que ser construido com um nome e nome tem que ser diferente de string"
+                );
             if (_productService.ProdutoExiste(model.Name))
                 return BadRequest("esse nome já existe na base de dados");
-
 
             productOld.AtualizarDados(model.Name, model.SuggestedPrice);
 
@@ -78,7 +82,6 @@ namespace DevInSales.Api.Controllers
 
             return NoContent();
         }
-
 
         /// <summary>
         ///  Deleta um produto pelo id.
@@ -90,6 +93,7 @@ namespace DevInSales.Api.Controllers
 
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "RequireAdministratorRole")]
         public ActionResult Delete(int id)
         {
             try
@@ -102,11 +106,15 @@ namespace DevInSales.Api.Controllers
                 if (ex.Message.Contains("não existe"))
                     return NotFound();
                 if (ex.HResult == -2146233088)
-                    return BadRequest("O produto especificado não pode ser excluido, porque já está atrelado a outra tabela!");
+                    return BadRequest(
+                        "O produto especificado não pode ser excluido, porque já está atrelado a outra tabela!"
+                    );
 
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Mensagem = ex.Message });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new { Mensagem = ex.Message }
+                );
             }
-
         }
 
         /// <summary>
@@ -125,7 +133,12 @@ namespace DevInSales.Api.Controllers
         /// <response code="400">Bad Request, stateId informado é diferente do stateId da cidade cadastrada no banco de dados.</response>
 
         [HttpGet]
-        public ActionResult<List<Product>> GetAll(string? name, decimal? priceMin, decimal? priceMax)
+        [Authorize(Policy = "RequireUserRole")]
+        public ActionResult<List<Product>> GetAll(
+            string? name,
+            decimal? priceMin,
+            decimal? priceMax
+        )
         {
             try
             {
@@ -139,10 +152,12 @@ namespace DevInSales.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Mensagem = ex.Message });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new { Mensagem = ex.Message }
+                );
             }
         }
-
 
         /// <summary>
         /// Cadastrar um produto.
@@ -158,6 +173,7 @@ namespace DevInSales.Api.Controllers
         /// <response code="201">Cadastrado com sucesso.</response>
         /// <response code="400">Bad Request Esse produto já existe na base de dados</response>
         [HttpPost]
+        [Authorize(Policy = "RequireManagerRole")]
         public ActionResult PostProduct(AddProduct model)
         {
             var product = new Product(model.Name, model.SuggestedPrice);

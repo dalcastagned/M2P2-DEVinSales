@@ -1,11 +1,13 @@
 using DevInSales.Core.Data.Dtos;
 using DevInSales.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace DevInSales.Api.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     [Route("api/[controller]")]
     public class StateController : ControllerBase
     {
@@ -15,8 +17,9 @@ namespace DevInSales.Api.Controllers
         {
             _stateService = stateService;
         }
-        
+
         [HttpGet]
+        [Authorize(Policy = "RequireUserRole")]
         [SwaggerResponse(
             statusCode: StatusCodes.Status200OK,
             description: "Ok",
@@ -43,6 +46,7 @@ namespace DevInSales.Api.Controllers
         }
 
         [HttpGet("{stateId}")]
+        [Authorize(Policy = "RequireUserRole")]
         [SwaggerResponse(
             statusCode: StatusCodes.Status200OK,
             description: "Ok",
