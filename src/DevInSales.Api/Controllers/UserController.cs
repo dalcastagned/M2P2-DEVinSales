@@ -1,4 +1,5 @@
 using DevInSales.Api.Dtos;
+using DevInSales.Api.Utils;
 using DevInSales.Core.Data.Dtos;
 using DevInSales.Core.Entities;
 using DevInSales.EFCoreApi.Core.Interfaces;
@@ -6,12 +7,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RegexExamples;
-using SolarEnergyApi.Api.Utils;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace DevInSales.Api.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     [Route("/api/[controller]")]
     public class UserController : ControllerBase
     {
@@ -31,6 +32,7 @@ namespace DevInSales.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "RequireUserRole")]
         [SwaggerResponse(
             statusCode: StatusCodes.Status200OK,
             description: "Ok",
@@ -57,6 +59,7 @@ namespace DevInSales.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "RequireUserRole")]
         [SwaggerResponse(
             statusCode: StatusCodes.Status200OK,
             description: "Ok",
@@ -76,7 +79,6 @@ namespace DevInSales.Api.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var user = await _userService.GetById(id);
-
             if (user == null)
                 return NotFound();
 
@@ -97,10 +99,12 @@ namespace DevInSales.Api.Controllers
         {
             var user = new User
             {
+                Name = model.Name,
                 UserName = model.Username,
                 Email = model.Email,
                 EmailConfirmed = true,
-                BirthDate = model.BirthDate
+                BirthDate = model.BirthDate,
+                PasswordExpired = DateTime.Now.AddMonths(3).ToShortDateString()
             };
 
             var verifyEmail = new EmailValidate();
@@ -124,6 +128,7 @@ namespace DevInSales.Api.Controllers
 
             if (result.Succeeded)
             {
+                await _userManager.AddToRoleAsync(user, "Usuario");
                 return Ok(new { user = model.Username });
             }
             return BadRequest(result.Errors);
@@ -147,17 +152,23 @@ namespace DevInSales.Api.Controllers
             try
             {
                 var user = await _userService.GetUser(login.Email);
+                var roles = await _userService.GetRoles(user);
                 var result = await _userService.Login(user, login.Password);
 
                 if (result.Succeeded)
                 {
+                    if (DateTime.Now > Convert.ToDateTime(user.PasswordExpired))
+                    {
+                        return Unauthorized("Password expired");
+                    }
                     return Ok(
                         new
                         {
                             token = new GenerateJWT()
                                 .Generate(user, _configuration, _userManager)
                                 .Result,
-                            user = login.Email
+                            user = login.Email,
+                            roles
                         }
                     );
                 }
@@ -174,6 +185,7 @@ namespace DevInSales.Api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "RequireAdministratorRole")]
         [SwaggerResponse(statusCode: StatusCodes.Status204NoContent, description: "No Content")]
         [SwaggerResponse(
             statusCode: StatusCodes.Status401Unauthorized,
@@ -199,6 +211,54 @@ namespace DevInSales.Api.Controllers
                 return NoContent();
 
             return BadRequest();
+        }
+        
+        [HttpPost("reset-password/{user}")]
+        [AllowAnonymous]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Success")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+           statusCode: StatusCodes.Status500InternalServerError,
+           description: "Server Error"
+       )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [SwaggerOperation(Summary = "Reset Password")]
+        public async Task<IActionResult> ResetPassword(string user, ResetPassword model)
+        {
+            var userToReset = await _userService.GetUser(user);
+            userToReset.PasswordExpired = DateTime.Now.AddMonths(6).ToShortDateString();
+            var result = await _userService.ChangePassword(
+                userToReset,
+                model.CurrentPassword,
+                model.NewPassword
+            );
+
+            if (result.Succeeded)
+            {
+                return Ok();
+            }
+            return BadRequest(result.Errors);
+        }
+
+        [HttpPost("add-user-role")]
+        [Authorize(Policy = "RequireAdministratorRole")]
+        [SwaggerResponse(statusCode: StatusCodes.Status200OK, description: "Success")]
+        [SwaggerResponse(statusCode: StatusCodes.Status400BadRequest, description: "Bad Request")]
+        [SwaggerResponse(
+           statusCode: StatusCodes.Status500InternalServerError,
+           description: "Server Error"
+       )]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [SwaggerOperation(Summary = "Add User Role")]
+        public async Task<IActionResult> AddUserRole(AddUserRole model)
+        {
+            var user = await _userService.GetUser(model.Email);
+            var result = await _userService.AddUserRole(user, model.Role);
+
+            if (result.Succeeded)
+                return Ok();
+
+            return BadRequest(result.Errors);
         }
     }
 }

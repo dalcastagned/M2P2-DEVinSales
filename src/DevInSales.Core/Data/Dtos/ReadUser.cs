@@ -13,13 +13,15 @@ namespace DevInSales.Core.Data.Dtos
         {
             Id = user.Id;
             Email = user.Email;
-            Name = user.UserName;
+            Name = user.Name;
+            UserName = user.UserName;
             BirthDate = user.BirthDate;
         }
         
         public int Id { get; set; }
         public string Email { get; set; }
         public string Name { get; set; }
+        public string UserName { get; set; }
         public DateTime BirthDate { get; set; }
     }
 }

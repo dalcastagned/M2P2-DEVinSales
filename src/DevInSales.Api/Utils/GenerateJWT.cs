@@ -5,7 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace SolarEnergyApi.Api.Utils
+namespace DevInSales.Api.Utils
 {
     public class GenerateJWT
     {

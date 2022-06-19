@@ -30,6 +30,12 @@ namespace DevInSales.Core.Entities
 
         public async Task<User> GetUser(string email) => await _userManager.FindByEmailAsync(email);
 
+        public async Task<IList<string>> GetRoles(User user) =>
+            await _userManager.GetRolesAsync(user);
+
+        public async Task<IdentityResult> AddUserRole(User user, string role) =>
+            await _userManager.AddToRoleAsync(user, role);
+
         public async Task<User> GetById(int id) => await _userManager.FindByIdAsync(id.ToString());
 
         public async Task<IdentityResult> RemoveUser(User user) =>
@@ -43,7 +49,7 @@ namespace DevInSales.Core.Entities
         {
             var query = _userManager.Users.AsQueryable();
             if (!string.IsNullOrEmpty(name))
-                query = query.Where(p => p.UserName.ToUpper().Contains(name.ToUpper()));
+                query = query.Where(p => p.Name.ToUpper().Contains(name.ToUpper()));
             if (!string.IsNullOrEmpty(DataMin))
                 query = query.Where(p => p.BirthDate >= DateTime.Parse(DataMin));
             if (!string.IsNullOrEmpty(DataMax))
@@ -51,5 +57,11 @@ namespace DevInSales.Core.Entities
 
             return await query.ToListAsync();
         }
+
+        public async Task<IdentityResult> ChangePassword(
+            User user,
+            string currentPassword,
+            string newPassword
+        ) => await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
     }
 }

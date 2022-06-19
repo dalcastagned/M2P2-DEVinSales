@@ -24,6 +24,11 @@ namespace DevInSales.Core.Data.Context
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+            
+            this.SeedRoles(modelBuilder);
+            this.SeedUsers(modelBuilder);
+            this.SeedUserRoles(modelBuilder);
+
             modelBuilder.Entity<UserRole>(
                 userRole =>
                 {
@@ -51,6 +56,43 @@ namespace DevInSales.Core.Data.Context
         public DbSet<Sale> Sales { get; set; }
         public DbSet<Delivery> Deliveries { get; set; }
         public DbSet<SaleProduct> SaleProducts { get; set; }
+
+        private void SeedRoles(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, Name = "Administrador", NormalizedName = "ADMINISTRADOR" },
+                new Role { Id = 2, Name = "Gerente", NormalizedName = "GERENTE" },
+                new Role { Id = 3, Name = "Usuario", NormalizedName = "USUARIO" }
+            );
+        }
+        private void SeedUsers(ModelBuilder modelBuilder)
+        {
+            User user = new User()
+            {
+                Id = 1,
+                Name = "Suporte",
+                UserName = "suporte",
+                NormalizedUserName = "SUPORTE",
+                Email = "suporte@suporte.com",
+                NormalizedEmail = "SUPORTE@SUPORTE.COM",
+                EmailConfirmed = true,
+                BirthDate = DateTime.Now,
+                SecurityStamp = "YYGXBMRWXF6A3J5PEYA3EVNXG6Y4YBTC"
+            };
+            PasswordHasher<User> passwordHasher = new PasswordHasher<User>();
+            user.PasswordHash = passwordHasher.HashPassword(user, "suporte");
+            user.PasswordExpired = DateTime.Now.AddDays(-1).ToShortDateString();
+
+            modelBuilder.Entity<User>().HasData(user);
+        }
+        private void SeedUserRoles(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<UserRole>().HasData(
+                new UserRole { UserId = 1, RoleId = 1 },
+                new UserRole { UserId = 1, RoleId = 2 },
+                new UserRole { UserId = 1, RoleId = 3 }
+            );
+        }
 
     }
 }

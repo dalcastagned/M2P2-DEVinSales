@@ -80,11 +80,33 @@ builder.Services
         }
     );
 
-builder.Services.AddMvc(
+builder.Services
+    .AddMvcCore(
+        options =>
+        {
+            var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+            options.Filters.Add(new AuthorizeFilter(policy));
+        }
+    )
+    .AddAuthorization();
+
+builder.Services.AddAuthorization(
     options =>
     {
-        var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-        options.Filters.Add(new AuthorizeFilter(policy));
+        options.AddPolicy(
+            "RequireAdministratorRole",
+            policy => policy.RequireRole("Administrador")
+        );
+
+        options.AddPolicy(
+            "RequireManagerRole",
+            policy => policy.RequireRole("Gerente", "Administrador")
+        );
+
+        options.AddPolicy(
+            "RequireUserRole",
+            policy => policy.RequireRole("Usuario", "Gerente", "Administrador")
+        );
     }
 );
 
@@ -161,7 +183,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 app.UseHttpsRedirection();
-app.UseAuthorization();
 app.MapControllers();
 app.UseAuthentication();
 
