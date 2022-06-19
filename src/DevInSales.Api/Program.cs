@@ -22,7 +22,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DataContext>(
-    options => options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQLConnection"))
+    options => options.UseSqlServer(builder.Configuration.GetConnectionString("DevInSalesCs"))
 );
 
 builder.Services.AddScoped<ISaleService, SaleService>();
@@ -34,7 +34,7 @@ builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+// AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddIdentityCore<User>(
     options =>
