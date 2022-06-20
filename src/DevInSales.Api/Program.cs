@@ -108,6 +108,7 @@ builder.Services.AddAuthorization(
     }
 );
 
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(
     c =>
@@ -148,11 +149,11 @@ builder.Services.AddSwaggerGen(
             {
                 Title = "DevInSales API",
                 Version = "v1",
-                Description = "Projeto 2 do módulo 2 do curso DevInHouse da turma WPP",
+                Description = "Refatoração do projeto 2 do módulo 2 do curso DevInHouse da turma WPP",
                 Contact = new OpenApiContact
                 {
-                    Name = "Turma WPP",
-                    Url = new Uri("https://github.com/DEVin-Way2-Pixeon-Paradigma/M2P2-DEVinSales")
+                    Name = "Daniel Dalcastagne - Turma WPP",
+                    Url = new Uri("https://github.com/dalcastagned/M2P2-DEVinSales")
                 }
             }
         );
