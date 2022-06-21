@@ -25,7 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\DevInSales.Api\DevInSales.Api.csproj" />
     <ProjectReference Include="..\src\DevInSales.Core\DevInSales.Core.csproj" />
   </ItemGroup>
 

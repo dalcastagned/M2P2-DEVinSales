@@ -7,50 +7,51 @@ namespace DevInSales.Tests.Services
 {
     public class CityServiceTest
     {
-        [Fact]
-        public void GetById_ShouldReturnCity()
+        private CityService _cityService;
+
+        public CityServiceTest()
         {
             var options = new DbContextOptionsBuilder<DataContext>()
-                .UseInMemoryDatabase(databaseName: "GetById_ShouldReturnCity")
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
+            var context = new DataContext(options);
+            _cityService = new CityService(context);
+            Seed().Wait();
+        }
 
-            using (var context = new DataContext(options))
-            {
-                var service = new CityService(context);
-                var result = service.GetById(1);
-                Assert.NotNull(result);
-            }
+        private async Task Seed()
+        {
+            await _cityService.Add(new City(1, "Cidade 1"));
+            await _cityService.Add(new City(1, "Cidade 2"));
+            await _cityService.Add(new City(1, "Cidade 3"));
         }
 
         [Fact]
-        public void GetAll_ShouldReturnCity()
+        public async Task GetById_ShouldReturnCity()
         {
-            var options = new DbContextOptionsBuilder<DataContext>()
-                .UseInMemoryDatabase(databaseName: "GetAll_ShouldReturnCity")
-                .Options;
+            var result = await _cityService.GetById(1);
+            Assert.NotNull(result);
+            Assert.Equal(1, result.Id);
+        }
 
-            using (var context = new DataContext(options))
-            {
-                var service = new CityService(context);
-                var result = service.GetAll(1, "");
-                Assert.NotNull(result);
-            }
+        [Theory]
+        [InlineData(1, null)]
+        [InlineData(1, "Cidade 1")]
+        public async Task GetAll_ShouldReturnCity(int stateId, string? name)
+        {
+            var result = await _cityService.GetAll(stateId, name);
+            Assert.NotEmpty(result);
+            Assert.Contains(1, result.Select(x => x.StateId));
+            Assert.Contains("Cidade 1", result.Select(x => x.Name));
         }
 
         [Fact]
-        public void Add_ShouldReturnCity()
+        public async Task Add_ShouldReturnCity()
         {
-            var options = new DbContextOptionsBuilder<DataContext>()
-                .UseInMemoryDatabase(databaseName: "Add_ShouldReturnCity")
-                .Options;
+            await _cityService.Add(new City(1, "Cidade 4"));
 
-            using (var context = new DataContext(options))
-            {
-                var service = new CityService(context);
-                var result = service.Add(new City(1, "Cidade"));
-                Assert.NotNull(result);
-                Assert.Equal(1, result.Id);
-            }
+            var result = await _cityService.GetAll(1, "Cidade 4");
+            Assert.Contains("Cidade 4", result.Select(x => x.Name));
         }
     }
 }

@@ -55,7 +55,7 @@ namespace DevInSales.Api.Controllers
         )
         {
             var addresses = await _addressService.GetAll(stateId, cityId, street, cep);
-            if (addresses == null)
+            if (!addresses.Any())
                 return NoContent();
 
             return Ok(addresses.Select(a => new ReadAddress(a)).ToList());

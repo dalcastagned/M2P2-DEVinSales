@@ -46,7 +46,7 @@ namespace DevInSales.Api.Controllers
                 return NotFound();
 
             var citiesList = await _cityService.GetAll(stateId, name);
-            if (citiesList == null)
+            if (!citiesList.Any())
                 return NoContent();
 
             return Ok(citiesList.Select(c => new ReadCity(c)).ToList());

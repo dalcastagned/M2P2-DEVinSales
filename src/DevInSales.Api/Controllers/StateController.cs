@@ -35,11 +35,11 @@ namespace DevInSales.Api.Controllers
             description: "Server Error"
         )]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        [SwaggerOperation(Summary = "Get cities list")]
+        [SwaggerOperation(Summary = "Get state list")]
         public async Task<IActionResult> GetAll(string? name)
         {
             var statesList = await _stateService.GetAll(name);
-            if (statesList == null)
+            if (!statesList.Any())
                 return NoContent();
 
             return Ok(statesList.Select(s => new ReadState(s)).ToList());
@@ -62,7 +62,7 @@ namespace DevInSales.Api.Controllers
             description: "Server Error"
         )]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        [SwaggerOperation(Summary = "Get cities list")]
+        [SwaggerOperation(Summary = "Get state by id")]
         public async Task<IActionResult> GetByStateId(int stateId)
         {
             var state = await _stateService.GetById(stateId);

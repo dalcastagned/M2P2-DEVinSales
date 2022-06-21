@@ -60,8 +60,6 @@ namespace DevInSales.Api.Controllers
         {
             var productOld = await _productService.ObterProductPorId(id);
 
-            if (model == null)
-                return NotFound();
             if (!ModelState.IsValid || model.Name.ToLower() == "string")
                 return BadRequest(
                     "O objeto tem que ser construido com um nome e nome tem que ser diferente de string"
